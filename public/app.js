@@ -1,5 +1,5 @@
 // Connect to Socket.io server
-const socket = io();
+const socket = io("http://localhost:3000");
 
 // DOM elements
 const joinForm = document.getElementById("join-form");
@@ -140,7 +140,49 @@ socket.on("user_typing", (data) => {
   showTypingIndicator(data);
 });
 
+socket.on("previous_messages", (previousMessages) => {
+  // Display previous messages
+  previousMessages.forEach((message) => {
+    addPreviousMessageToUI(message);
+  });
+});
+
 // UI update functions
+
+function addPreviousMessageToUI(message) {
+  const messageElement = document.createElement("div");
+  messageElement.classList.add("p-3", "rounded-lg", "break-words");
+
+  // Different styling for different message types
+  if (message.userId === "system") {
+    messageElement.classList.add("system-message", "text-sm", "text-gray-600");
+  } else if (message.userId === socket.id) {
+    messageElement.classList.add("bg-blue-100", "ml-auto", "mr-0", "max-w-md");
+  } else {
+    messageElement.classList.add("bg-gray-100", "mr-auto", "ml-0", "max-w-md");
+  }
+
+  // Format message content
+  messageElement.innerHTML = `
+    <div class="flex justify-between items-start mb-1">
+      <span class="font-medium ${
+        message.userId === socket.id ? "text-blue-600" : "text-gray-800"
+      }">${message.username}</span>
+      <span class="text-xs text-gray-500 ml-2">${formatTime(
+        message.timestamp
+      )}</span>
+    </div>
+    <div class="${message.userId === "system" ? "italic" : ""}">${
+    message.message
+  }</div>
+  `;
+
+  messagesContainer.appendChild(messageElement);
+
+  // Scroll to bottom
+  messagesContainer.scrollTop = messagesContainer.scrollHeight;
+}
+
 function addMessageToUI(message) {
   const messageElement = document.createElement("div");
   messageElement.classList.add("p-3", "rounded-lg", "break-words");
